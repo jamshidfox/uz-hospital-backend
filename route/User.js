@@ -1,17 +1,18 @@
 const express = require('express');
+const fs = require('fs/promises');
 const route = express.Router();
 const bcrypt = require('bcrypt');
 const mongoose = require('mongoose');
 const Joi = require('joi');
 const jwt = require('jsonwebtoken');
+const multer = require('multer');
+const upload = multer({ dest: 'upload/' });
 const secretKey = 'hello';
+const { configUrl } = require('../configs/config');
+const { ObjectId } = require('mongodb');
 
-const User = require('../models/user');
-
-const configUrl =
-  'mongodb+srv://Jamshidbek:Hopes5778$@cluster0.b9gtufk.mongodb.net/uz-hospital?retryWrites=true&w=majority';
 route.post('/register', async (req, res) => {
-  const { email, password } = req.body;
+  const { email, password, name, surname } = req.body;
 
   //Validation
   const schema = Joi.object({
@@ -19,6 +20,8 @@ route.post('/register', async (req, res) => {
     password: Joi.string()
       .pattern(new RegExp(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/))
       .required(),
+    name: Joi.string(),
+    surname: Joi.string(),
   });
   const { error } = schema.validate(req.body);
   if (error) {
@@ -41,6 +44,8 @@ route.post('/register', async (req, res) => {
           await db.collection('users').insertOne({
             email,
             password: hash,
+            name,
+            surname,
           });
           res.send('Successefully added');
           mongoose.disconnect();
@@ -49,7 +54,6 @@ route.post('/register', async (req, res) => {
     }
   });
 });
-
 route.post('/login', async (req, res) => {
   const { email, password } = req.body;
 
@@ -76,6 +80,8 @@ route.post('/login', async (req, res) => {
         res.cookie('token', token, { httpOnly: true });
         return res.send({
           token,
+          avatar: 'qanqa',
+          userName: `${user.name} ${user.surname}`,
         });
       }
       mongoose.disconnect();
@@ -85,5 +91,27 @@ route.post('/login', async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 });
+route.put('/update/:id', upload.single('image'), async (req, res) => {
+  const userId = req.params.id;
+  const { path } = req.file;
 
+  mongoose.connect(configUrl, async (err, db) => {
+    if (err) {
+      console.log(`Error accuried: ${err}`);
+      res.send(`Error accuried: ${err}`);
+    } else {
+      await db
+        .collection('users')
+        .updateOne({ _id: ObjectId(userId) }, { $set: { avatar: path } }, (err, result) => {
+          if (err) {
+            console.error(err);
+            res.status(500).send('Error updating todo');
+          } else {
+            console.log(result);
+            res.send('Todo updated successfully');
+          }
+        });
+    }
+  });
+});
 module.exports = route;

@@ -11,11 +11,11 @@ app.use(cors());
 //Route
 const User = require('../route/User');
 const Doctors = require('../route/Doctors');
-app.use(authorize);
 const Dashboard = require('../route/Dashboard');
 
 app.use(bodyParser.json());
 app.use('/user', User);
+app.use(authorize);
 app.use('/dashboard', Dashboard);
 app.use('/doctors', Doctors);
 const handler = serverless(app);
