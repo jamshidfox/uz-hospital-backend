@@ -1,12 +1,11 @@
 const express = require('express');
-const fs = require('fs/promises');
 const route = express.Router();
 const bcrypt = require('bcrypt');
 const mongoose = require('mongoose');
 const Joi = require('joi');
 const jwt = require('jsonwebtoken');
-const multer = require('multer');
-const upload = multer({ dest: 'upload/' });
+// const multer = require('multer');
+// const upload = multer({ dest: 'upload/' });
 const secretKey = 'hello';
 const { configUrl } = require('../configs/config');
 const { ObjectId } = require('mongodb');
