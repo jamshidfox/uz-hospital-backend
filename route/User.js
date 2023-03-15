@@ -91,27 +91,27 @@ route.post('/login', async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 });
-route.put('/update/:id', upload.single('image'), async (req, res) => {
-  const userId = req.params.id;
-  const { path } = req.file;
+// route.put('/update/:id', upload.single('image'), async (req, res) => {
+//   const userId = req.params.id;
+//   const { path } = req.file;
 
-  mongoose.connect(configUrl, async (err, db) => {
-    if (err) {
-      console.log(`Error accuried: ${err}`);
-      res.send(`Error accuried: ${err}`);
-    } else {
-      await db
-        .collection('users')
-        .updateOne({ _id: ObjectId(userId) }, { $set: { avatar: path } }, (err, result) => {
-          if (err) {
-            console.error(err);
-            res.status(500).send('Error updating todo');
-          } else {
-            console.log(result);
-            res.send('Todo updated successfully');
-          }
-        });
-    }
-  });
-});
+//   mongoose.connect(configUrl, async (err, db) => {
+//     if (err) {
+//       console.log(`Error accuried: ${err}`);
+//       res.send(`Error accuried: ${err}`);
+//     } else {
+//       await db
+//         .collection('users')
+//         .updateOne({ _id: ObjectId(userId) }, { $set: { avatar: path } }, (err, result) => {
+//           if (err) {
+//             console.error(err);
+//             res.status(500).send('Error updating todo');
+//           } else {
+//             console.log(result);
+//             res.send('Todo updated successfully');
+//           }
+//         });
+//     }
+//   });
+// });
 module.exports = route;
