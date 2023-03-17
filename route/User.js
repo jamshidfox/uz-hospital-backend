@@ -4,12 +4,41 @@ const bcrypt = require('bcrypt');
 const mongoose = require('mongoose');
 const Joi = require('joi');
 const jwt = require('jsonwebtoken');
-// const multer = require('multer');
-// const upload = multer({ dest: 'upload/' });
 const secretKey = 'hello';
 const { configUrl } = require('../configs/config');
 const { ObjectId } = require('mongodb');
+//Midleware for file body
+const multer = require('multer');
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, 'uploads/'); // Uploads folder
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + '-' + file.originalname); // Unique filename
+  },
+});
+const upload = multer({ storage: storage });
+//Function to upload to aws
+const AWS = require('aws-sdk');
 
+AWS.config.update({
+  accessKeyId: 'AKIA5CNOQI3CG3VQUOJ4',
+  secretAccessKey: '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',
+});
+
+const s3 = new AWS.S3();
+
+async function uploadImageToS3(file, callback) {
+  const params = {
+    Bucket: 'bucket841234',
+    Key: file.originalname,
+    Body: file.path,
+    ACL: 'public-read',
+  };
+
+  return await s3.upload(params, callback);
+}
+//_____________________________________________
 route.post('/register', async (req, res) => {
   const { email, password, name, surname } = req.body;
 
@@ -79,7 +108,7 @@ route.post('/login', async (req, res) => {
         res.cookie('token', token, { httpOnly: true });
         return res.send({
           token,
-          avatar: 'qanqa',
+          avatar: user.avatar,
           userName: `${user.name} ${user.surname}`,
         });
       }
@@ -90,27 +119,37 @@ route.post('/login', async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 });
-// route.put('/update/:id', upload.single('image'), async (req, res) => {
-//   const userId = req.params.id;
-//   const { path } = req.file;
 
-//   mongoose.connect(configUrl, async (err, db) => {
-//     if (err) {
-//       console.log(`Error accuried: ${err}`);
-//       res.send(`Error accuried: ${err}`);
-//     } else {
-//       await db
-//         .collection('users')
-//         .updateOne({ _id: ObjectId(userId) }, { $set: { avatar: path } }, (err, result) => {
-//           if (err) {
-//             console.error(err);
-//             res.status(500).send('Error updating todo');
-//           } else {
-//             console.log(result);
-//             res.send('Todo updated successfully');
-//           }
-//         });
-//     }
-//   });
-// });
+route.put('/update/:id', upload.single('avatar'), async (req, res) => {
+  const userId = req.params.id;
+  const file = req.file;
+
+  uploadImageToS3(file, (err, data) => {
+    if (err) {
+      console.error(err);
+      res.status(500).send('Error uploading image to S3');
+    } else {
+      console.log(`Image uploaded to S3: ${data.Location}`);
+      res.send('Image uploaded to S3');
+    }
+  });
+  //   mongoose.connect(configUrl, async (err, db) => {
+  //     if (err) {
+  //       console.log(`Error accuried: ${err}`);
+  //       res.send(`Error accuried: ${err}`);
+  //     } else {
+  //       await db
+  //         .collection('users')
+  //         .updateOne({ _id: ObjectId(userId) }, { $set: { avatar: path } }, (err, result) => {
+  //           if (err) {
+  //             console.error(err);
+  //             res.status(500).send('Error updating todo');
+  //           } else {
+  //             console.log(result);
+  //             res.send('Todo updated successfully');
+  //           }
+  //         });
+  //     }
+  //   });
+});
 module.exports = route;
