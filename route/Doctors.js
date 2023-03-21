@@ -3,9 +3,25 @@ const route = express.Router();
 const { configUrl } = require('../configs/config');
 const Joi = require('joi');
 const mongoose = require('mongoose');
+const { uploadImageToS3 } = require('./helpers/s3');
+//Multer middleware
 
-route.post('/addNew', async (req, res) => {
+const multer = require('multer');
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, 'uploads/doctors'); // Uploads folder
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + '-' + file.originalname); // Unique filename
+  },
+});
+const upload = multer({ storage: storage });
+
+//Routing
+
+route.post('/addNew', upload.single('image'), async (req, res) => {
   const { name, surname, status, email, password } = req.body;
+  const file = req.file;
 
   //Validation
   const schema = Joi.object({
@@ -18,23 +34,26 @@ route.post('/addNew', async (req, res) => {
       .required(),
   });
   const { error } = schema.validate(req.body);
+  const image = await uploadImageToS3(file);
+
+  const doctorInfo = {
+    name,
+    surname,
+    email,
+    password,
+    status,
+    image: image.Location,
+  };
   if (error) {
     return res.status(400).send(error.details[0].message);
   }
-
   // Adding To DataBase
   mongoose.connect(configUrl, async (err, db) => {
     if (err) {
       console.log(`Error accuried: ${err}`);
       res.send(`Error accuried: ${err}`);
     } else {
-      await db.collection('doctors').insertOne({
-        name,
-        surname,
-        status,
-        email,
-        password,
-      });
+      await db.collection('doctors').insertOne(doctorInfo);
       res.send('Successefully added');
       mongoose.disconnect();
     }
