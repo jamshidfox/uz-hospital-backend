@@ -59,4 +59,19 @@ route.post('/addNew', upload.single('image'), async (req, res) => {
     }
   });
 });
+route.get('/getDoctors', (req, res) => {
+  mongoose.connect(configUrl, async (err, db) => {
+    if (err) {
+      console.log(`Error accuried: ${err}`);
+      res.send(`Error accuried: ${err}`);
+    } else {
+      await db
+        .collection('doctors')
+        .find()
+        .toArray((err, result) => {
+          return res.send(result);
+        });
+    }
+  });
+});
 module.exports = route;
