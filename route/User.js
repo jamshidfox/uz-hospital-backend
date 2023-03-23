@@ -6,6 +6,7 @@ const mongoose = require('mongoose');
 const Joi = require('joi');
 const jwt = require('jsonwebtoken');
 const secretKey = 'hello';
+const { isEmpty } = require('ramda');
 const { configUrl } = require('../configs/config');
 const { ObjectId } = require('mongodb');
 const { uploadImageToS3 } = require('./helpers/s3');
@@ -37,7 +38,6 @@ route.post('/register', async (req, res) => {
   if (error) {
     return res.status(400).send(error.details[0].message);
   }
-  //Checking email registration before
 
   //Hashing
   const saltRounds = 2;
@@ -51,11 +51,17 @@ route.post('/register', async (req, res) => {
           console.log(`Error accuried: ${err}`);
           res.send(`Error accuried: ${err}`);
         } else {
+          const user = await db.collection('users').findOne({ email: email });
+
+          if (user) {
+            return res.status(400).json({ message: 'email has already been used' });
+          }
           await db.collection('users').insertOne({
             email,
             password: hash,
             name,
             surname,
+            avatar: null,
           });
           res.send('Successefully added');
           mongoose.disconnect();
