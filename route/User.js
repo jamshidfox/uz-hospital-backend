@@ -86,7 +86,7 @@ route.post('/login', async (req, res) => {
         if (!isMatch) {
           return res.status(400).json({ message: 'Invalid credentials' });
         }
-        const token = jwt.sign(user, secretKey, { expiresIn: '1h' });
+        const token = jwt.sign(user, secretKey, { expiresIn: '1d' });
         res.cookie('token', token, { httpOnly: true });
         return res.send({
           token,
