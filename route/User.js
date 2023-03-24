@@ -94,10 +94,12 @@ route.post('/login', async (req, res) => {
         }
         const token = jwt.sign(user, secretKey, { expiresIn: '1d' });
         res.cookie('token', token, { httpOnly: true });
+        console.log(user)
         return res.send({
           token,
           avatar: user.avatar,
           userName: `${user.name} ${user.surname}`,
+          user_id: user._id
         });
       }
       mongoose.disconnect();
