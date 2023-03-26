@@ -13,9 +13,11 @@ const User = require('../route/User');
 const Doctors = require('../route/Doctors');
 const Dashboard = require('../route/Dashboard');
 const Appointment = require('../route/Appointments');
+const Main = require('../route/Main');
 
 app.use(bodyParser.json());
 app.use('/user', User);
+app.use('/main', Main);
 app.use(authorize);
 app.use('/dashboard', Dashboard);
 app.use('/doctors', Doctors);
