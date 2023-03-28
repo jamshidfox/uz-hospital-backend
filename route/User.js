@@ -22,6 +22,8 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 
+const userPermission = ['watch_users', 'appointments', 'patients', 'payments'];
+
 route.post('/register', async (req, res) => {
   const { email, password, name, surname } = req.body;
 
@@ -62,6 +64,7 @@ route.post('/register', async (req, res) => {
             name,
             surname,
             avatar: null,
+            permissions: userPermission,
           });
           res.send('Successefully added');
           mongoose.disconnect();
