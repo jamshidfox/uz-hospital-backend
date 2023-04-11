@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {},
-  "author": "Jamshidbek Kobilov]",
+  "author": "Jamshidbek Kobilov",
   "license": "ISC",
   "dependencies": {
     "aws-sdk": "^2.1336.0",
