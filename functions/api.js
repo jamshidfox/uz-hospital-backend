@@ -4,23 +4,24 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const serverless = require('serverless-http');
 const { authorize } = require('../route/functions');
+const WebSocket = require('ws');
 const port = 9999;
 //Cors
 app.use(cors());
 //Socket
-const WebSocket = require('ws');
 const server = app.listen(port, () => {
   console.log('Server started');
 });
-const wss = new WebSocket.Server({ noServer: true });
+
+const wss = new WebSocket.Server({ server });
 
 wss.on('connection', (ws) => {
-  console.log('A new client connected');
+  console.log('A new user connected');
 
   ws.on('message', (message) => {
     console.log(`Received message: ${message}`);
 
-    // Send a response back to the client
+    // Echo the message back to the client
     ws.send(`You said: ${message}`);
   });
 });
@@ -30,6 +31,7 @@ server.on('upgrade', (request, socket, head) => {
     wss.emit('connection', ws, request);
   });
 });
+
 //
 //Route
 const User = require('../route/User');
